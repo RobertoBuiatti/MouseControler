@@ -1,11 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
-from detectorFace import start_detection as start_face_detection, stop_detection
-from detectorNose import start_detection as start_nose_detection
-from detectorEyes import start_detection as start_eyes_detection
+from detectorFace import start_detection as start_face_detection, stop_detection as stop_face_detection
+from detectorNose import start_detection as start_nose_detection, stop_detection as stop_nose_detection
+from detectorEyes import start_detection as start_eyes_detection, stop_detection as stop_eyes_detection
 import cv2
 
 camera_source = None
+delay_value = 1  # Valor padrão
 
 def get_available_cameras():
     index = 0
@@ -31,17 +32,37 @@ def confirm_link():
     start_button.config(state=tk.NORMAL if camera_source else tk.DISABLED)
 
 def start_detection_wrapper():
+    global delay_value, current_detection_mode
+    delay_value = float(selected_delay.get())
     detection_mode = selected_detection_mode.get()
+    current_detection_mode = detection_mode
     if detection_mode == 'Nariz':
-        start_nose_detection(camera_source)
+        start_nose_detection(camera_source, delay_value)
     elif detection_mode == 'Olhos':
-        start_eyes_detection(camera_source)
+        start_eyes_detection(camera_source, delay_value)
     elif detection_mode == 'Rosto':
-        start_face_detection(camera_source)
+        start_face_detection(camera_source, delay_value)
     else:
-        start_face_detection(camera_source)
+        start_face_detection(camera_source, delay_value)
+
+def stop_detection_wrapper():
+    detection_mode = current_detection_mode
+    if detection_mode == 'Nariz':
+        stop_nose_detection()
+    elif detection_mode == 'Olhos':
+        stop_eyes_detection()
+    elif detection_mode == 'Rosto':
+        stop_face_detection()
+
+def validate_delay_input(P):
+    if P.isdigit() or (P == '' or P == '.' or (P.startswith('-') and P[1:].isdigit())):
+        return True
+    else:
+        return False
 
 def create_widgets(root):
+    global delay_entry  # Definindo delay_entry como global para ser acessível fora da função
+
     style = ttk.Style(root)
     style.theme_use('clam')
     style.configure('TLabel', font=('Helvetica', 12))
@@ -67,9 +88,16 @@ def create_widgets(root):
     detection_mode_menu = ttk.Combobox(root, textvariable=selected_detection_mode, values=detection_modes, state='readonly')
     detection_mode_menu.grid(row=2, column=1, padx=10, pady=10, sticky='e')
 
-    confirm_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
-    start_button.grid(row=4, column=0, padx=10, pady=10)
-    stop_button.grid(row=4, column=1, padx=10, pady=10)
+    delay_label = ttk.Label(root, text="Digite os frames de parada (0 sem parada):")
+    delay_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
+
+    vcmd = root.register(validate_delay_input)
+    delay_entry = ttk.Entry(root, textvariable=selected_delay, validate="key", validatecommand=(vcmd, '%P'))
+    delay_entry.grid(row=3, column=1, padx=10, pady=10, sticky='e')
+
+    confirm_button.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+    start_button.grid(row=5, column=0, padx=10, pady=10)
+    stop_button.grid(row=5, column=1, padx=10, pady=10)
 
 # Interface gráfica
 root = tk.Tk()
@@ -91,10 +119,18 @@ detection_modes = ['Nariz', 'Olhos', 'Rosto']
 selected_detection_mode = tk.StringVar(root)
 selected_detection_mode.set(detection_modes[0])  # Seleciona o primeiro modo por padrão
 
+# Opções de delay
+delay_options = ['0', '0.5', '1', '2', '3', '4']
+selected_delay = tk.StringVar(root)
+selected_delay.set(delay_options[1])  # Seleciona '0.5' como padrão
+
 confirm_button = ttk.Button(root, text="Confirmar", command=confirm_link)
 start_button = ttk.Button(root, text="Iniciar", command=start_detection_wrapper)
 start_button.config(state=tk.DISABLED)
-stop_button = ttk.Button(root, text="Parar", command=stop_detection)
+stop_button = ttk.Button(root, text="Parar", command=stop_detection_wrapper)
+
+# Variável para armazenar o modo de detecção atual
+current_detection_mode = None
 
 # Criação e posicionamento dos widgets
 create_widgets(root)

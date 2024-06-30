@@ -10,33 +10,48 @@ pyautogui.FAILSAFE = False
 # Inicialização do mediapipe para detecção de pontos faciais
 face_mesh = mp.solutions.face_mesh.FaceMesh(refine_landmarks=True, max_num_faces=1)
 
+# Tamanho da tela para referência do movimento do mouse
 tela_width, tela_height = pyautogui.size()
 
 # Variáveis para detectar a duração da abertura da boca
 mouth_open = False
 mouth_open_start_time = None
-last_click_time = 0
 MOUTH_OPEN_THRESHOLD = 0.5  # tempo em segundos para duplo clique
 MOUTH_DISTANCE_THRESHOLD = 15  # Threshold para detectar boca aberta
 
 # Suavização do movimento do mouse
 mouse_positions = deque(maxlen=10)  # Aumentando o histórico para maior suavização
-nose_positions = deque(maxlen=10)
+face_positions = deque(maxlen=10)
 
 # Estado para controle do loop principal
 running = False
-acceleration_factor = 0.5
-acceleration_step = 0.1
-acceleration_limit = 5.0
+acceleration_factor = 1.5
+acceleration_step = 0.2
+acceleration_limit = 25.0
+
+# Valor padrão para a sensibilidade de movimento
+default_sensitivity = 0.5
+
+# Variável global para cor do rosto
+face_color = (0, 255, 0)  # Cor padrão
 
 def smooth_mouse_movement(x, y):
     mouse_positions.append((x, y))
-    avg_x = sum(pos[0] for pos in mouse_positions) // len(mouse_positions)
-    avg_y = sum(pos[1] for pos in mouse_positions) // len(mouse_positions)
-    return avg_x, avg_y
 
-def run_detection(camera_source):
-    global mouth_open, mouth_open_start_time, last_click_time, running, acceleration_factor
+    if len(mouse_positions) > 1:
+        smooth_x = int(sum(pos[0] for pos in mouse_positions) / len(mouse_positions))
+        smooth_y = int(sum(pos[1] for pos in mouse_positions) / len(mouse_positions))
+
+        current_x, current_y = pyautogui.position()
+        interp_x = current_x + (smooth_x - current_x) // 2
+        interp_y = current_y + (smooth_y - current_y) // 2
+
+        return interp_x, interp_y
+    else:
+        return x, y
+
+def run_detection(camera_source, delay_value):
+    global mouth_open, mouth_open_start_time, running, acceleration_factor, face_color
 
     cam = cv2.VideoCapture(camera_source)
 
@@ -62,39 +77,39 @@ def run_detection(camera_source):
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 nose_x, nose_y = None, None
-                lip_bottom_y, lip_top_y = None, None
-
                 for i, landmark in enumerate(face_landmarks.landmark):
-                    x = int(landmark.x * frame_width)
-                    y = int(landmark.y * frame_height)
-                    if i == 1:
-                        nose_x = x
-                        nose_y = y
-                    if i == 13:
-                        lip_bottom_y = y
-                    if i == 14:
-                        lip_top_y = y
+                    if i == 1:  # Ponto do nariz
+                        nose_x = int(landmark.x * frame_width)
+                        nose_y = int(landmark.y * frame_height)
+                        break
 
                 if nose_x is not None and nose_y is not None:
-                    nose_positions.append((nose_x, nose_y))
-                    if len(nose_positions) > 1:
-                        prev_x, prev_y = nose_positions[-2]
-                        delta_x = abs(nose_x - prev_x)
-                        delta_y = abs(nose_y - prev_y)
+                    face_positions.append((nose_x, nose_y))
+                    if len(face_positions) > 1:
+                        prev_x, prev_y = face_positions[-2]
+                        delta_x = nose_x - prev_x
+                        delta_y = nose_y - prev_y
 
-                        if delta_x > 1 or delta_y > 1:
+                        # Ajuste do valor do delta para maior suavização
+                        sensitivity = acceleration_factor
+                        if abs(delta_x) > delay_value or abs(delta_y) > delay_value:
                             if acceleration_factor < acceleration_limit:
                                 acceleration_factor += acceleration_step
-                            sensitivity_x = acceleration_factor
-                            sensitivity_y = acceleration_factor
-                            move_x = int((nose_x - frame_width // 2) * sensitivity_x)
-                            move_y = int((nose_y - frame_height // 2) * sensitivity_y)
+                            move_x = int(delta_x * sensitivity * 4)
+                            move_y = int(delta_y * sensitivity * 8)
                             smooth_x, smooth_y = smooth_mouse_movement(pyautogui.position().x + move_x, pyautogui.position().y + move_y)
                             pyautogui.moveTo(smooth_x, smooth_y)
-                            nose_color = (0, 0, 255)
+                            face_color = (0, 0, 255)
                         else:
-                            acceleration_factor = 0.5
-                            nose_color = (0, 255, 0)
+                            acceleration_factor = default_sensitivity
+                            face_color = (0, 255, 0)
+
+                lip_bottom_y, lip_top_y = None, None
+                for i, landmark in enumerate(face_landmarks.landmark):
+                    if i == 13:
+                        lip_bottom_y = int(landmark.y * frame_height)
+                    if i == 14:
+                        lip_top_y = int(landmark.y * frame_height)
 
                 if lip_bottom_y is not None and lip_top_y is not None:
                     mouth_distance = lip_top_y - lip_bottom_y
@@ -104,24 +119,8 @@ def run_detection(camera_source):
                             mouth_open = True
                             mouth_open_start_time = current_time
                             pyautogui.click()
-                            click_color = (0, 0, 255)
-                        elif current_time - mouth_open_start_time > MOUTH_OPEN_THRESHOLD:
-                            pyautogui.doubleClick()
-                            click_color = (0, 255, 255)
-                            mouth_open_start_time = current_time
                     else:
                         mouth_open = False
-                        click_color = (0, 255, 0)
-
-                for idx, landmark in enumerate(face_landmarks.landmark):
-                    if idx == 1:
-                        x = int(landmark.x * frame_width)
-                        y = int(landmark.y * frame_height)
-                        cv2.circle(frame, (x, y), 2, nose_color, -1)
-                    elif idx in {13, 14}:
-                        x = int(landmark.x * frame_width)
-                        y = int(landmark.y * frame_height)
-                        cv2.circle(frame, (x, y), 2, click_color, -1)
 
         cv2.imshow('Face Mesh', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -130,14 +129,11 @@ def run_detection(camera_source):
     cam.release()
     cv2.destroyAllWindows()
 
-def start_detection(camera_source):
+def start_detection(camera_source, delay_value):
     global running
     running = True
-    threading.Thread(target=run_detection, args=(camera_source,)).start()
+    threading.Thread(target=run_detection, args=(camera_source, delay_value)).start()
 
 def stop_detection():
     global running
     running = False
-
-# Iniciar a detecção (substitua '0' pelo índice da sua câmera, se necessário)
-start_detection(0)

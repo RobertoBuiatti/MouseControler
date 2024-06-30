@@ -21,7 +21,7 @@ MOUTH_DISTANCE_THRESHOLD = 15  # Threshold para detectar boca aberta
 
 # Suavização do movimento do mouse
 mouse_positions = deque(maxlen=10)  # Aumentando o histórico para maior suavização
-face_positions = deque(maxlen=10)
+eye_positions = deque(maxlen=10)
 
 # Estado para controle do loop principal
 running = False
@@ -61,8 +61,10 @@ def run_detection(camera_source):
         results = face_mesh.process(small_frame_rgb)
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
+                left_eye_x, left_eye_y = None, None
+                right_eye_x, right_eye_y = None, None
                 lip_bottom_y, lip_top_y = None, None
-                face_center_x, face_center_y = None, None
+
                 for i, landmark in enumerate(face_landmarks.landmark):
                     x = int(landmark.x * frame_width)
                     y = int(landmark.y * frame_height)
@@ -77,30 +79,29 @@ def run_detection(camera_source):
                     if i == 14:
                         lip_top_y = y
 
-                if left_eye_x is not None and right_eye_x is not None:
-                    face_center_x = (left_eye_x + right_eye_x) // 2
-                    face_center_y = (left_eye_y + right_eye_y) // 2
+                if left_eye_x is not None and left_eye_y is not None and right_eye_x is not None and right_eye_y is not None:
+                    eye_center_x = (left_eye_x + right_eye_x) // 2
+                    eye_center_y = (left_eye_y + right_eye_y) // 2
 
-                if face_center_x is not None and face_center_y is not None:
-                    face_positions.append((face_center_x, face_center_y))
-                    if len(face_positions) > 1:
-                        prev_x, prev_y = face_positions[-2]
-                        delta_x = face_center_x - prev_x
-                        delta_y = face_center_y - prev_y
+                    eye_positions.append((eye_center_x, eye_center_y))
+                    if len(eye_positions) > 1:
+                        prev_x, prev_y = eye_positions[-2]
+                        delta_x = abs(eye_center_x - prev_x)
+                        delta_y = abs(eye_center_y - prev_y)
 
-                        if abs(delta_x) > 1 or abs(delta_y) > 1:
+                        if delta_x > 1 or delta_y > 1:
                             if acceleration_factor < acceleration_limit:
                                 acceleration_factor += acceleration_step
                             sensitivity_x = acceleration_factor
                             sensitivity_y = acceleration_factor
-                            move_x = int(delta_x * sensitivity_x)
-                            move_y = int(delta_y * sensitivity_y)
+                            move_x = int((eye_center_x - frame_width // 2) * sensitivity_x)
+                            move_y = int((eye_center_y - frame_height // 2) * sensitivity_y)
                             smooth_x, smooth_y = smooth_mouse_movement(pyautogui.position().x + move_x, pyautogui.position().y + move_y)
                             pyautogui.moveTo(smooth_x, smooth_y)
-                            face_color = (0, 0, 255)
+                            eye_color = (0, 0, 255)
                         else:
                             acceleration_factor = 0.5
-                            face_color = (0, 255, 0)
+                            eye_color = (0, 255, 0)
 
                 if lip_bottom_y is not None and lip_top_y is not None:
                     mouth_distance = lip_top_y - lip_bottom_y
@@ -123,7 +124,7 @@ def run_detection(camera_source):
                     if idx in {33, 263}:
                         x = int(landmark.x * frame_width)
                         y = int(landmark.y * frame_height)
-                        cv2.circle(frame, (x, y), 2, face_color, -1)
+                        cv2.circle(frame, (x, y), 2, eye_color, -1)
                     elif idx in {13, 14}:
                         x = int(landmark.x * frame_width)
                         y = int(landmark.y * frame_height)

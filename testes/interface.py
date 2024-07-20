@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
+from ttkbootstrap import Style
+from ttkbootstrap.widgets import Entry, Combobox, Button, Label, OptionMenu
 from detectorFace import start_detection as start_face_detection, stop_detection as stop_face_detection
 from detectorNose import start_detection as start_nose_detection, stop_detection as stop_nose_detection
 from detectorEyes import start_detection as start_eyes_detection, stop_detection as stop_eyes_detection
@@ -63,36 +64,28 @@ def validate_delay_input(P):
 def create_widgets(root):
     global delay_entry  # Definindo delay_entry como global para ser acessível fora da função
 
-    style = ttk.Style(root)
-    style.theme_use('clam')
-    style.configure('TLabel', font=('Helvetica', 12))
-    style.configure('TButton', font=('Helvetica', 12))
-    style.configure('TEntry', font=('Helvetica', 12))
-    style.configure('TOptionMenu', font=('Helvetica', 12))
-    style.configure('TCombobox', font=('Helvetica', 12))
-
-    camera_label = ttk.Label(root, text="Selecione a Webcam:")
+    camera_label = Label(root, text="Selecione a Webcam:", background='black', foreground='white')
     camera_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
-    camera_menu = ttk.OptionMenu(root, selected_camera, *available_cameras)
+    camera_menu = OptionMenu(root, selected_camera, *available_cameras, style='info')
     camera_menu.grid(row=0, column=1, padx=10, pady=10, sticky='e')
 
-    link_label = ttk.Label(root, text="Ou insira o link da câmera:")
+    link_label = Label(root, text="Ou insira o link da câmera:", background='black', foreground='white')
     link_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
 
     link_entry.grid(row=1, column=1, padx=10, pady=10, sticky='e')
 
-    detection_mode_label = ttk.Label(root, text="Selecione o modo de detecção:")
+    detection_mode_label = Label(root, text="Selecione o modo de detecção:", background='black', foreground='white')
     detection_mode_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
 
-    detection_mode_menu = ttk.Combobox(root, textvariable=selected_detection_mode, values=detection_modes, state='readonly')
+    detection_mode_menu = Combobox(root, textvariable=selected_detection_mode, values=detection_modes, state='readonly', style='info')
     detection_mode_menu.grid(row=2, column=1, padx=10, pady=10, sticky='e')
 
-    delay_label = ttk.Label(root, text="Digite os frames de parada (0 sem parada):")
+    delay_label = Label(root, text="Digite os frames de parada (0 sem parada):", background='black', foreground='white')
     delay_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
 
     vcmd = root.register(validate_delay_input)
-    delay_entry = ttk.Entry(root, textvariable=selected_delay, validate="key", validatecommand=(vcmd, '%P'))
+    delay_entry = Entry(root, textvariable=selected_delay, validate="key", validatecommand=(vcmd, '%P'), style='info')
     delay_entry.grid(row=3, column=1, padx=10, pady=10, sticky='e')
 
     confirm_button.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
@@ -103,6 +96,12 @@ def create_widgets(root):
 root = tk.Tk()
 root.title("Detecção de Rosto e Controle do Mouse")
 
+# Aplicar o estilo moderno usando ttkbootstrap
+style = Style(theme='cosmo')
+
+# Definindo o fundo preto para o root
+root.configure(bg='black')
+
 # Lista de câmeras disponíveis
 available_cameras = get_available_cameras()
 if available_cameras:
@@ -112,7 +111,7 @@ else:
     selected_camera = tk.StringVar(root)
     selected_camera.set("Nenhuma webcam encontrada")
 
-link_entry = ttk.Entry(root)
+link_entry = Entry(root, style='info')
 
 # Modos de detecção
 detection_modes = ['Nariz', 'Olhos', 'Rosto']
@@ -124,10 +123,10 @@ delay_options = ['0', '0.5', '1', '2', '3', '4']
 selected_delay = tk.StringVar(root)
 selected_delay.set(delay_options[1])  # Seleciona '0.5' como padrão
 
-confirm_button = ttk.Button(root, text="Confirmar", command=confirm_link)
-start_button = ttk.Button(root, text="Iniciar", command=start_detection_wrapper)
+confirm_button = Button(root, text="Confirmar", command=confirm_link, style='primary.TButton')
+start_button = Button(root, text="Iniciar", command=start_detection_wrapper, style='success.TButton')
 start_button.config(state=tk.DISABLED)
-stop_button = ttk.Button(root, text="Parar", command=stop_detection_wrapper)
+stop_button = Button(root, text="Parar", command=stop_detection_wrapper, style='danger.TButton')
 
 # Variável para armazenar o modo de detecção atual
 current_detection_mode = None

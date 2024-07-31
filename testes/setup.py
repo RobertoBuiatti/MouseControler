@@ -1,11 +1,20 @@
 import sys
 from cx_Freeze import setup, Executable
+import os
 
-# Dependências adicionais que você pode precisar
+# Dependências adicionais e arquivos necessários
 build_exe_options = {
-    "packages": ["cv2", "mediapipe", "pyautogui", "threading", "collections", "time", "tkinter"],
+    "packages": ["numpy", "cv2", "mediapipe", "pyautogui", "threading", "ttkbootstrap", "collections", "time", "tkinter" ],
     "excludes": [],
-    "include_files": ['./interface.py', './detectorEyes.py', './detectorFace.py', './detectorNose.py'],  # Inclua aqui quaisquer outros arquivos necessários
+    "include_files": [
+        ('interface.py', '.'),  # Inclui o arquivo 'interface.py' no diretório atual
+        ('detectorEyes.py', '.'),  # Inclui o arquivo 'detectorEyes.py' no diretório atual
+        ('detectorFace.py', '.'),  # Inclui o arquivo 'detectorFace.py' no diretório atual
+        ('detectorNose.py', '.'),  # Inclui o arquivo 'detectorNose.py' no diretório atual
+        ('icon/night.png', 'icon/'),  # Inclui o arquivo 'night.png' no diretório 'icon'
+        ('icon/sun.png', 'icon/'),  # Inclui o arquivo 'sun.png' no diretório 'icon'
+        ('computermouse_78940.ico', '.'),  # Inclui o arquivo 'computermouse_78940.ico' no diretório atual
+    ],
 }
 
 base = None

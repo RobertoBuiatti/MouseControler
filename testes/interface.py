@@ -5,6 +5,7 @@ from detectorFace import (
     start_detection as start_face_detection,
     stop_detection as stop_face_detection,
 )
+
 from detectorNose import (
     start_detection as start_nose_detection,
     stop_detection as stop_nose_detection,

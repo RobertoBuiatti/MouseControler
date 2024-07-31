@@ -78,3 +78,5 @@ target/
 # Windows
 Thumbs.db
 ehthumbs.db
+
+exe.win-amd64-3.12.zip

@@ -4,7 +4,7 @@ import os
 
 # Dependências adicionais e arquivos necessários
 build_exe_options = {
-    "packages": ["numpy", "cv2", "mediapipe", "pyautogui", "threading", "ttkbootstrap", "collections", "time", "tkinter" ],
+    "packages": ["numpy", "cv2", "mediapipe", "pyautogui", "threading", "ttkbootstrap", "collections", "time", "tkinter"],
     "excludes": [],
     "include_files": [
         ('interface.py', '.'),  # Inclui o arquivo 'interface.py' no diretório atual
@@ -23,7 +23,7 @@ if sys.platform == "win32":
 
 # Lista de executáveis a serem criados
 executables = [
-    Executable("interface.py", base=base, icon="./computermouse_78940.ico")  # Substitua pelo caminho do seu ícone .ico
+    Executable("interface.py", base=base, icon="computermouse_78940.ico")  # Certifique-se de que o caminho do ícone está correto
 ]
 
 setup(

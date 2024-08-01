@@ -1,6 +1,5 @@
 import sys
 from cx_Freeze import setup, Executable
-import os
 
 # Dependências adicionais e arquivos necessários
 build_exe_options = {
@@ -14,7 +13,7 @@ build_exe_options = {
         ('icon/night.png', 'icon/'),  # Inclui o arquivo 'night.png' no diretório 'icon'
         ('icon/sun.png', 'icon/'),  # Inclui o arquivo 'sun.png' no diretório 'icon'
         ('computermouse_78940.ico', '.'),  # Inclui o arquivo 'computermouse_78940.ico' no diretório atual
-    ],
+        ],
 }
 
 base = None

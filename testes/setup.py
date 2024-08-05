@@ -1,7 +1,8 @@
 import sys
 from cx_Freeze import setup, Executable
+import os
 
-# Dependências adicionais e arquivos necessários
+# Caminho de build mais curto
 build_exe_options = {
     "packages": ["numpy", "cv2", "mediapipe", "pyautogui", "threading", "ttkbootstrap", "collections", "time", "tkinter"],
     "excludes": [],
@@ -13,7 +14,8 @@ build_exe_options = {
         ('icon/night.png', 'icon/'),  # Inclui o arquivo 'night.png' no diretório 'icon'
         ('icon/sun.png', 'icon/'),  # Inclui o arquivo 'sun.png' no diretório 'icon'
         ('computermouse_78940.ico', '.'),  # Inclui o arquivo 'computermouse_78940.ico' no diretório atual
-        ],
+    ],
+    "build_exe": os.path.join(os.getcwd(), "build")  # Caminho de build alterado para o diretório atual
 }
 
 base = None

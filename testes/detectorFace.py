@@ -35,6 +35,7 @@ default_sensitivity = 0.5
 # Variável global para cor do rosto
 face_color = (0, 255, 0)  # Cor padrão
 
+
 def smooth_mouse_movement(x, y):
     mouse_positions.append((x, y))
 
@@ -50,7 +51,8 @@ def smooth_mouse_movement(x, y):
     else:
         return x, y
 
-def run_detection(camera_source, delay_value):
+
+def run_detection(camera_source, delay_value, rotation_value):
     global mouth_open, mouth_open_start_time, running, acceleration_factor, face_color
 
     cam = cv2.VideoCapture(camera_source)
@@ -63,10 +65,12 @@ def run_detection(camera_source, delay_value):
             continue
 
         frame_count += 1
-        if frame_count % 2 != 0:  # Processa apenas cada segundo frame para reduzir a carga
+        if (
+            frame_count % 2 != 0
+        ):  # Processa apenas cada segundo frame para reduzir a carga
             continue
 
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = cv2.rotate(frame, rotation_value)
         frame = cv2.flip(frame, 1)
         frame_height, frame_width, _ = frame.shape
 
@@ -103,7 +107,10 @@ def run_detection(camera_source, delay_value):
                                 acceleration_factor += acceleration_step
                             move_x = int(delta_x * sensitivity * 4)
                             move_y = int(delta_y * sensitivity * 8)
-                            smooth_x, smooth_y = smooth_mouse_movement(pyautogui.position().x + move_x, pyautogui.position().y + move_y)
+                            smooth_x, smooth_y = smooth_mouse_movement(
+                                pyautogui.position().x + move_x,
+                                pyautogui.position().y + move_y,
+                            )
                             pyautogui.moveTo(smooth_x, smooth_y)
                             face_color = (0, 0, 255)
                         else:
@@ -127,18 +134,19 @@ def run_detection(camera_source, delay_value):
                     else:
                         mouth_open = False
 
-        cv2.imshow('Face Mesh', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow("Face Mesh", frame)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
     cam.release()
     cv2.destroyAllWindows()
 
 
-def start_detection(camera_source, delay_value):
+def start_detection(camera_source, delay_value, rotation_value):
     global running
     running = True
-    threading.Thread(target=run_detection, args=(camera_source, delay_value)).start()
+    threading.Thread(target=run_detection, args=(camera_source, delay_value, rotation_value)).start()
+
 
 def stop_detection():
     global running

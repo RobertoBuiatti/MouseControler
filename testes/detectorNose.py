@@ -50,7 +50,7 @@ def smooth_mouse_movement(x, y):
     else:
         return x, y
 
-def run_detection(camera_source, delay_value):
+def run_detection(camera_source, delay_value, rotation_value):
     global mouth_open, mouth_open_start_time, running, acceleration_factor, face_color
 
     cam = cv2.VideoCapture(camera_source)
@@ -66,7 +66,7 @@ def run_detection(camera_source, delay_value):
         if frame_count % 2 != 0:  # Processa apenas cada segundo frame para reduzir a carga
             continue
 
-        frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame = cv2.rotate(frame, rotation_value)
         frame = cv2.flip(frame, 1)
         frame_height, frame_width, _ = frame.shape
 
@@ -129,10 +129,10 @@ def run_detection(camera_source, delay_value):
     cam.release()
     cv2.destroyAllWindows()
 
-def start_detection(camera_source, delay_value):
+def start_detection(camera_source, delay_value, rotation_value):
     global running
     running = True
-    threading.Thread(target=run_detection, args=(camera_source, delay_value)).start()
+    threading.Thread(target=run_detection, args=(camera_source, delay_value, rotation_value)).start()
 
 def stop_detection():
     global running

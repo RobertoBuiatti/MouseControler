@@ -19,6 +19,7 @@ import os
 
 camera_source = None
 delay_value = 1  # Valor padrão
+rotation_value = cv2.ROTATE_90_CLOCKWISE  # Valor padrão de rotação
 
 def get_available_cameras():
     index = 0
@@ -49,13 +50,13 @@ def start_detection_wrapper():
     detection_mode = selected_detection_mode.get()
     current_detection_mode = detection_mode
     if detection_mode == "Nariz":
-        start_nose_detection(camera_source, delay_value)
+        start_nose_detection(camera_source, delay_value, rotation_value)
     elif detection_mode == "Olhos":
-        start_eyes_detection(camera_source, delay_value)
+        start_eyes_detection(camera_source, delay_value, rotation_value)
     elif detection_mode == "Rosto":
-        start_face_detection(camera_source, delay_value)
+        start_face_detection(camera_source, delay_value, rotation_value)
     else:
-        start_face_detection(camera_source, delay_value)
+        start_face_detection(camera_source, delay_value, rotation_value)
 
 def stop_detection_wrapper():
     detection_mode = current_detection_mode
@@ -159,8 +160,18 @@ def create_widgets(root):
     delay_entry.grid(row=4, column=1, padx=10, pady=10, sticky="e")
 
     confirm_button.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
-    start_button.grid(row=6, column=0, padx=10, pady=10)
-    stop_button.grid(row=6, column=1, padx=10, pady=10)
+    rotate_button.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+    start_button.grid(row=7, column=0, padx=10, pady=10)
+    stop_button.grid(row=7, column=1, padx=10, pady=10)
+
+def rotate_image():
+    global rotation_value
+    if rotation_value == cv2.ROTATE_90_CLOCKWISE:
+        rotation_value = cv2.ROTATE_90_COUNTERCLOCKWISE
+    elif rotation_value == cv2.ROTATE_90_COUNTERCLOCKWISE:
+        rotation_value = cv2.ROTATE_180
+    elif rotation_value == cv2.ROTATE_180:
+        rotation_value = cv2.ROTATE_90_CLOCKWISE
 
 # Interface gráfica
 root = tk.Tk()
@@ -211,6 +222,9 @@ start_button = Button(
 start_button.config(state=tk.DISABLED)
 stop_button = Button(
     root, text="Parar", command=stop_detection_wrapper, style="danger.TButton"
+)
+rotate_button = Button(
+    root, text="Rodar Camera", command=rotate_image, style="warning.TButton"
 )
 
 # Variável para armazenar o modo de detecção atual

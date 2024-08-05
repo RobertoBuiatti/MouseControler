@@ -195,12 +195,12 @@ link_entry = Entry(root, style="info")
 # Modos de detecção
 detection_modes = ["Nariz", "Olhos", "Rosto"]
 selected_detection_mode = tk.StringVar(root)
-selected_detection_mode.set(detection_modes[0])  # Seleciona o primeiro modo por padrão
+selected_detection_mode.set(detection_modes[2])  # Seleciona o primeiro modo por padrão
 
 # Opções de delay
-delay_options = ["0", "0.5", "1", "2", "3", "4"]
+delay_options = ["0", "1", "2", "3", "4"]
 selected_delay = tk.StringVar(root)
-selected_delay.set(delay_options[1])  # Seleciona '0.5' como padrão
+selected_delay.set(delay_options[1])  # Seleciona '1' como padrão
 
 confirm_button = Button(
     root, text="Confirmar", command=confirm_link, style="primary.TButton"

@@ -137,3 +137,5 @@ def start_detection(camera_source, delay_value):
 def stop_detection():
     global running
     running = False
+    while threading.active_count() > 1:
+        time.sleep(0.1)

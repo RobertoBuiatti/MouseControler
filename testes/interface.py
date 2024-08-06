@@ -19,7 +19,7 @@ import os
 
 camera_source = None
 delay_value = 1  # Valor padrão
-rotation_value = cv2.ROTATE_90_CLOCKWISE  # Valor padrão de rotação
+rotation_value = 0  # Valor padrão de rotação
 
 def get_available_cameras():
     index = 0
@@ -36,13 +36,14 @@ def get_available_cameras():
 
 def confirm_link():
     global camera_source
+    global selected_camera_source
     if link_entry.get():
         camera_source = link_entry.get()
     else:
         selected_camera_source = selected_camera.get()
         if selected_camera_source != "Nenhuma webcam encontrada":
             camera_source = int(selected_camera_source)
-    start_button.config(state=tk.NORMAL if camera_source else tk.DISABLED)
+    start_button.config(state=tk.NORMAL if camera_source or selected_camera_source else tk.DISABLED)
 
 def start_detection_wrapper():
     global delay_value, current_detection_mode
@@ -167,10 +168,12 @@ def create_widgets(root):
 def rotate_image():
     global rotation_value
     if rotation_value == cv2.ROTATE_90_CLOCKWISE:
-        rotation_value = cv2.ROTATE_90_COUNTERCLOCKWISE
-    elif rotation_value == cv2.ROTATE_90_COUNTERCLOCKWISE:
         rotation_value = cv2.ROTATE_180
     elif rotation_value == cv2.ROTATE_180:
+        rotation_value = cv2.ROTATE_90_COUNTERCLOCKWISE
+    elif rotation_value == cv2.ROTATE_90_COUNTERCLOCKWISE:
+        rotation_value = 0  # Representa 0 graus de rotação
+    elif rotation_value == 0:
         rotation_value = cv2.ROTATE_90_CLOCKWISE
 
 # Interface gráfica
@@ -233,8 +236,10 @@ current_detection_mode = None
 # Variável para armazenar o tema atual
 current_theme = "dark"
 
-# Criação e posicionamento dos widgets
-create_widgets(root)
-update_widget_colors()
+# Função para alternar tema
 
+# Criação dos widgets
+create_widgets(root)
+
+# Iniciar o loop principal do Tkinter
 root.mainloop()

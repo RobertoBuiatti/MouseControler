@@ -66,7 +66,20 @@ def run_detection(camera_source, delay_value, rotation_value):
         if frame_count % 2 != 0:  # Processa apenas cada segundo frame para reduzir a carga
             continue
 
-        frame = cv2.rotate(frame, rotation_value)
+        if rotation_value == 90:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+        elif rotation_value == 180:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+        elif rotation_value == 270:
+            frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        elif rotation_value == 0:
+            # Não faz nada, a imagem permanece como está
+            pass
+        else:
+            # Caso um valor inesperado seja passado, por segurança, não rotaciona o frame
+            pass
+        
+        
         frame = cv2.flip(frame, 1)
         frame_height, frame_width, _ = frame.shape
 

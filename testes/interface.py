@@ -167,14 +167,18 @@ def create_widgets(root):
 
 def rotate_image():
     global rotation_value
-    if rotation_value == cv2.ROTATE_90_CLOCKWISE:
-        rotation_value = cv2.ROTATE_180
-    elif rotation_value == cv2.ROTATE_180:
-        rotation_value = cv2.ROTATE_90_COUNTERCLOCKWISE
-    elif rotation_value == cv2.ROTATE_90_COUNTERCLOCKWISE:
-        rotation_value = 0  # Representa 0 graus de rotação
-    elif rotation_value == 0:
-        rotation_value = cv2.ROTATE_90_CLOCKWISE
+    if rotation_value == 0:
+        rotation_value = 90
+    elif rotation_value == 90:
+        rotation_value = 180
+    elif rotation_value == 180:
+        rotation_value = 270
+    elif rotation_value == 270:
+        rotation_value = 0
+    else:
+        rotation_value = 0  # Valor padrão caso um valor inválido seja passado
+
+
 
 # Interface gráfica
 root = tk.Tk()

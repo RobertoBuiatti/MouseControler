@@ -131,6 +131,7 @@ def run_detection(camera_source, delay_value, rotation_value):
                         else:
                             acceleration_factor = default_sensitivity
                             face_color = (0, 255, 0)
+                            
                 lip_bottom_y, lip_top_y = None, None
                 for i, landmark in enumerate(face_landmarks.landmark):
                     if i == 13:
@@ -144,8 +145,12 @@ def run_detection(camera_source, delay_value, rotation_value):
                     if mouth_distance > MOUTH_DISTANCE_THRESHOLD:
                         if not mouth_open:
                             mouth_open = True
-                            mouth_open_start_time = current_time
-                            pyautogui.click()
+                            if mouth_open_start_time and (current_time - mouth_open_start_time) < MOUTH_OPEN_THRESHOLD:
+                                pyautogui.doubleClick()  # Realiza o duplo clique
+                                mouth_open_start_time = None  # Reseta o tempo para evitar múltiplos cliques
+                            else:
+                                pyautogui.click()  # Realiza um único clique
+                                mouth_open_start_time = current_time
                     else:
                         mouth_open = False
 

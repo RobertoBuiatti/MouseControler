@@ -134,8 +134,12 @@ def run_detection(camera_source, delay_value, rotation_value):
                     if mouth_distance > MOUTH_DISTANCE_THRESHOLD:
                         if not mouth_open:
                             mouth_open = True
-                            mouth_open_start_time = current_time
-                            pyautogui.click()
+                            if mouth_open_start_time and (current_time - mouth_open_start_time) < MOUTH_OPEN_THRESHOLD:
+                                pyautogui.doubleClick()  # Realiza o duplo clique
+                                mouth_open_start_time = None  # Reseta o tempo para evitar múltiplos cliques
+                            else:
+                                pyautogui.click()  # Realiza um único clique
+                                mouth_open_start_time = current_time
                     else:
                         mouth_open = False
 

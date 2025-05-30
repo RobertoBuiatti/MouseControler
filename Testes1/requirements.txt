@@ -120,6 +120,10 @@ protobuf==4.25.4
     # via
     #   -r requirements.in
     #   mediapipe
+pyaudio==0.2.14
+    # via -r requirements.in
+requests==2.31.0
+    # via -r requirements.in
 pyautogui==0.9.54
     # via -r requirements.in
 pycparser==2.22
@@ -185,6 +189,8 @@ sounddevice==0.4.7
     # via
     #   -r requirements.in
     #   mediapipe
+speechrecognition==3.10.0
+    # via -r requirements.in
 sympy==1.13.1
     # via -r requirements.in
 ttkbootstrap==1.10.1

@@ -36,19 +36,15 @@ default_sensitivity = 0.5
 face_color = (0, 255, 0)  # Cor padrão
 
 def smooth_mouse_movement(x, y):
-    # Armazena as posições recentes para suavização
     mouse_positions.append((x, y))
+
     if len(mouse_positions) > 1:
-        # Média das últimas posições para suavizar o movimento
         smooth_x = int(sum(pos[0] for pos in mouse_positions) / len(mouse_positions))
         smooth_y = int(sum(pos[1] for pos in mouse_positions) / len(mouse_positions))
 
-        # Captura a posição atual do mouse
         current_x, current_y = pyautogui.position()
-        
-        # Interpola a nova posição com maior suavização
-        interp_x = current_x + int((smooth_x - current_x) * 0.4)  # Reduz a interpolação para suavizar mais
-        interp_y = current_y + int((smooth_y - current_y) * 0.4)
+        interp_x = current_x + (smooth_x - current_x) // 2
+        interp_y = current_y + (smooth_y - current_y) // 2
 
         return interp_x, interp_y
     else:
@@ -134,12 +130,8 @@ def run_detection(camera_source, delay_value, rotation_value):
                     if mouth_distance > MOUTH_DISTANCE_THRESHOLD:
                         if not mouth_open:
                             mouth_open = True
-                            if mouth_open_start_time and (current_time - mouth_open_start_time) < MOUTH_OPEN_THRESHOLD:
-                                pyautogui.doubleClick()  # Realiza o duplo clique
-                                mouth_open_start_time = None  # Reseta o tempo para evitar múltiplos cliques
-                            else:
-                                pyautogui.click()  # Realiza um único clique
-                                mouth_open_start_time = current_time
+                            mouth_open_start_time = current_time
+                            pyautogui.click()
                     else:
                         mouth_open = False
 

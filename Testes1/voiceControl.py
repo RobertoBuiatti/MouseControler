@@ -56,58 +56,111 @@ class VoiceController:
                     audio = self.recognizer.listen(source)
                     
                 try:
+                    print("\n=== Iniciando reconhecimento de voz ===")
                     text = self.recognizer.recognize_google(audio, language='pt-BR').lower()
-                    print(f"Texto reconhecido: {text}")
+                    print(f"✓ Texto reconhecido: '{text}'")
                     
+                    print("\n=== Processando comando ===")
                     # Processa o comando usando Gemini
                     result = self.processor.process_command(text)
+                    
                     if result:
                         # Adiciona o comando interpretado à fila
                         interpreted = self.processor.interpret_command(result)
                         self.command_queue.put(interpreted)
-                        print(f"Comando interpretado: {interpreted}")
+                        print(f"✓ Comando interpretado com sucesso: '{interpreted}'")
+                        print(f"✓ Detalhes do comando: {result}")
                         
                         # Executa a ação baseada no resultado
+                        print("\n=== Executando comando ===")
                         self._execute_command(result)
+                        print("✓ Comando executado com sucesso")
+                    else:
+                        print("✗ Falha ao processar comando - resultado nulo")
                     
                 except sr.UnknownValueError:
-                    print("Não foi possível entender o áudio")
+                    print("✗ Não foi possível entender o áudio - fala não reconhecida")
                 except sr.RequestError as e:
-                    print(f"Erro na requisição ao serviço de reconhecimento: {e}")
+                    print(f"✗ Erro na requisição ao serviço de reconhecimento: {e}")
+                    print("  Verifique sua conexão com a internet")
                     
             except Exception as e:
                 print(f"Erro: {e}")
                 time.sleep(1)
 
-    def _execute_command(self, result: Dict):
-        """Executa o comando baseado no resultado do processamento"""
-        action = result.get('action')
-        
-        if action == 'mover':
-            self._move_mouse(
-                result.get('direction', ''),
-                result.get('distance', self.default_distance)
-            )
-            
-        elif action == 'clicar':
-            command = result.get('command')
-            if command == 'duplo':
-                self._double_click()
+    def _execute_command(self, result: Union[Dict[str, Any], List[Dict[str, Any]]]):
+        """Executa o comando ou sequência de comandos baseado no resultado do processamento"""
+        try:
+            # Se for uma lista de comandos, executa cada um em sequência
+            if isinstance(result, list):
+                print(f"\n=== Executando sequência de {len(result)} comandos ===")
+                for i, cmd in enumerate(result, 1):
+                    print(f"\n▶ Executando comando {i}/{len(result)}")
+                    self._execute_single_command(cmd)
+                    # Pequena pausa entre comandos sequenciais
+                    if i < len(result):
+                        time.sleep(0.5)
             else:
-                self._click()
+                # Se for um comando único
+                self._execute_single_command(result)
                 
-        elif action == 'sistema':
-            command = result.get('command')
-            target = result.get('target')
+        except Exception as e:
+            print(f"✗ Erro ao executar sequência de comandos: {str(e)}")
+            print(f"  Detalhes: {result}")
+
+    def _execute_single_command(self, cmd: Dict[str, Any]):
+        """Executa um único comando"""
+        try:
+            action = cmd.get('action')
+            print(f"\nExecutando ação: {action}")
             
-            if command == 'fechar':
-                self._close_window()
-            elif command == 'minimizar':
-                self._minimize_window()
-            elif command == 'maximizar':
-                self._maximize_window()
-            elif command == 'abrir' and target:
-                self._open_program(target)
+            if action == 'mover':
+                direction = cmd.get('direction', '')
+                distance = cmd.get('distance', self.default_distance)
+                print(f"→ Movendo mouse: direção={direction}, distância={distance}px")
+                self._move_mouse(direction, distance)
+                print("✓ Mouse movido com sucesso")
+                
+            elif action == 'clicar':
+                command = cmd.get('command')
+                if command == 'duplo':
+                    print("→ Executando clique duplo")
+                    self._double_click()
+                    print("✓ Clique duplo realizado")
+                else:
+                    print("→ Executando clique simples")
+                    self._click()
+                    print("✓ Clique simples realizado")
+                    
+            elif action == 'sistema':
+                command = cmd.get('command')
+                target = cmd.get('target')
+                print(f"→ Comando do sistema: {command}")
+                
+                if command == 'fechar':
+                    print("→ Fechando janela atual")
+                    self._close_window()
+                    print("✓ Janela fechada")
+                elif command == 'minimizar':
+                    print("→ Minimizando janela atual")
+                    self._minimize_window()
+                    print("✓ Janela minimizada")
+                elif command == 'maximizar':
+                    print("→ Maximizando janela atual")
+                    self._maximize_window()
+                    print("✓ Janela maximizada")
+                elif command == 'abrir' and target:
+                    print(f"→ Abrindo programa: {target}")
+                    self._open_program(target)
+                    print(f"✓ Programa {target} iniciado")
+                else:
+                    print(f"✗ Comando do sistema não reconhecido: {command}")
+            else:
+                print(f"✗ Ação não reconhecida: {action}")
+                
+        except Exception as e:
+            print(f"✗ Erro ao executar comando: {str(e)}")
+            print(f"  Detalhes do comando: {cmd}")
 
     def _move_mouse(self, direction: str, distance: int):
         """Move o mouse em uma direção específica por uma distância determinada"""

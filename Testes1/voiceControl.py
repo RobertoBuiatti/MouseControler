@@ -5,7 +5,7 @@ import time
 import win32gui
 import win32con
 import os
-from typing import Optional, Dict, Callable
+from typing import Optional, Dict, Callable, Union, Any, List
 import re
 from queue import Queue
 from voice_processor import VoiceProcessor

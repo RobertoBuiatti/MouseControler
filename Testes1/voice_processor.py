@@ -42,11 +42,14 @@ class VoiceProcessor:
                     # Remove espaços em branco e quebras de linha extras
                     text_response = text_response.strip()
                     
+                    # Remove marcadores Markdown de código se presentes
+                    text_response = text_response.replace('```json', '').replace('```', '').strip()
+                    
                     # Log para debug
                     print(f"Resposta bruta do Gemini: {text_response}")
                     
                     # Verifica se é um array de comandos
-                    if text_response.startswith('['):
+                    if text_response.lstrip().startswith('['):
                         json_start = text_response.find('[')
                         json_end = text_response.rfind(']') + 1
                     else:

@@ -13,6 +13,10 @@ from detectorEyes import (
     start_detection as start_eyes_detection,
     stop_detection as stop_eyes_detection,
 )
+from detectorHand import (
+    start_detection as start_hand_detection,
+    stop_detection as stop_hand_detection,
+)
 from voiceControl import (
     start_detection as start_voice_detection,
     stop_detection as stop_voice_detection,
@@ -30,6 +34,7 @@ voice_controller = None  # Controlador de voz
 last_command = ""
 mic_status = "Desativado"
 
+
 def update_voice_status(status: str):
     """Atualiza o status do microfone na interface"""
     global mic_status, voice_status_label
@@ -37,12 +42,14 @@ def update_voice_status(status: str):
     if voice_status_label:
         voice_status_label.config(text=f"Status do Microfone: {status}")
 
+
 def update_last_command(command: str):
     """Atualiza o último comando reconhecido na interface"""
     global last_command, last_command_label
     last_command = command
     if last_command_label:
         last_command_label.config(text=f"Último Comando: {command}")
+
 
 def get_available_cameras():
     index = 0
@@ -57,6 +64,7 @@ def get_available_cameras():
         index += 1
     return arr
 
+
 def confirm_link():
     global camera_source
     global selected_camera_source
@@ -68,6 +76,7 @@ def confirm_link():
             camera_source = int(selected_camera_source)
     start_button.config(state=tk.NORMAL)
 
+
 def check_voice_commands():
     """Verifica e processa comandos de voz da fila"""
     global voice_controller
@@ -77,12 +86,13 @@ def check_voice_commands():
             update_last_command(command)
     root.after(100, check_voice_commands)  # Verifica a cada 100ms
 
+
 def start_detection_wrapper():
     global delay_value, current_detection_mode, voice_controller
     delay_value = float(selected_delay.get())
     detection_mode = selected_detection_mode.get()
     current_detection_mode = detection_mode
-    
+
     if detection_mode == "Voz":
         voice_controller = start_voice_detection()
         update_voice_status("Ativo")
@@ -101,13 +111,16 @@ def start_detection_wrapper():
         rotate_button.config(state=tk.NORMAL)
         delay_label.config(state=tk.NORMAL)
         delay_entry.config(state=tk.NORMAL)
-        
+
         if detection_mode == "Nariz":
             start_nose_detection(camera_source, delay_value, rotation_value)
         elif detection_mode == "Olhos":
             start_eyes_detection(camera_source, delay_value, rotation_value)
         elif detection_mode == "Rosto":
             start_face_detection(camera_source, delay_value, rotation_value)
+        elif detection_mode == "Mão":
+            start_hand_detection(camera_source, delay_value, rotation_value)
+
 
 def stop_detection_wrapper():
     global voice_controller
@@ -129,12 +142,16 @@ def stop_detection_wrapper():
         stop_eyes_detection()
     elif detection_mode == "Rosto":
         stop_face_detection()
+    elif detection_mode == "Mão":
+        stop_hand_detection()
+
 
 def validate_delay_input(P):
     if P.isdigit() or (P == "" or P == "." or (P.startswith("-") and P[1:].isdigit())):
         return True
     else:
         return False
+
 
 def toggle_theme():
     global current_theme, icon_label
@@ -150,11 +167,13 @@ def toggle_theme():
         root.configure(bg="black")
     update_widget_colors()
 
+
 def update_icon_background():
     if current_theme == "dark":
         icon_label.config(bg="black")
     else:
         icon_label.config(bg="white")
+
 
 def update_widget_colors():
     fg_color = "white" if current_theme == "dark" else "black"
@@ -166,6 +185,7 @@ def update_widget_colors():
     voice_status_label.config(foreground=fg_color, background=bg_color)
     last_command_label.config(foreground=fg_color, background=bg_color)
     update_icon_background()
+
 
 def create_widgets(root):
     global delay_entry, icon_label, camera_label, link_label, detection_mode_label, delay_label
@@ -206,7 +226,7 @@ def create_widgets(root):
         style="info",
     )
     detection_mode_menu.grid(row=3, column=1, padx=10, pady=10, sticky="e")
-    detection_mode_menu.bind('<<ComboboxSelected>>', on_mode_change)
+    detection_mode_menu.bind("<<ComboboxSelected>>", on_mode_change)
 
     delay_label = Label(
         root,
@@ -247,6 +267,11 @@ def create_widgets(root):
     rotate_button.grid(row=8, column=0, columnspan=2, padx=10, pady=10)
     start_button.grid(row=9, column=0, padx=10, pady=10)
     stop_button.grid(row=9, column=1, padx=10, pady=10)
+    instructions_button = Button(
+        root, text="Instruções", command=show_instructions, style="info.TButton"
+    )
+    instructions_button.grid(row=10, column=0, columnspan=2, padx=10, pady=10)
+
 
 def on_mode_change(event):
     """Manipula a mudança no modo de detecção"""
@@ -268,6 +293,144 @@ def on_mode_change(event):
         delay_entry.config(state=tk.NORMAL)
         start_button.config(state=tk.DISABLED)
 
+
+def show_instructions():
+    """Mostra a janela de instruções"""
+    instructions_window = tk.Toplevel(root)
+    instructions_window.title("Instruções de Uso")
+    instructions_window.geometry("600x500")
+    instructions_window.configure(bg="black" if current_theme == "dark" else "white")
+
+    # Criar frame com scrollbar
+    main_frame = tk.Frame(instructions_window)
+    main_frame.pack(fill=tk.BOTH, expand=1)
+    main_frame.configure(bg="black" if current_theme == "dark" else "white")
+
+    canvas = tk.Canvas(main_frame)
+    canvas.configure(bg="black" if current_theme == "dark" else "white")
+    scrollbar = tk.Scrollbar(main_frame, orient=tk.VERTICAL, command=canvas.yview)
+    scrollable_frame = tk.Frame(canvas)
+    scrollable_frame.configure(bg="black" if current_theme == "dark" else "white")
+
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Texto das instruções
+    fg_color = "white" if current_theme == "dark" else "black"
+    
+    sections = [
+        ("MODOS DE DETECÇÃO", [
+            "\nModo Nariz:",
+            "- Mova o nariz para controlar o cursor com precisão",
+            "- O cursor acelera conforme você move mais rápido",
+            "- Mantenha o nariz parado para estabilizar o cursor",
+            "- Abra a boca para fazer um clique",
+            "\nModo Olhos:",
+            "- Use o movimento dos olhos para mover o cursor",
+            "- O cursor segue a direção do seu olhar",
+            "- Sistema de aceleração suave para movimentos precisos",
+            "- Abra a boca para fazer um clique",
+            "\nModo Rosto:",
+            "- Controle com movimentos suaves da cabeça",
+            "- Sistema adaptativo de aceleração",
+            "- Movimento mais natural para uso prolongado",
+            "- Abra a boca para fazer um clique",
+            "\nModo Voz:",
+            "- Comandos em português do Brasil",
+            "- 'Clique' - clique simples",
+            "- 'Direito' - clique com botão direito",
+            "- 'Duplo' - clique duplo",
+            "- 'Mover [direção]' - move o cursor",
+            "- 'Fechar/Minimizar/Maximizar' - controla janelas",
+            "\nModo Mão:",
+            "- Palma aberta: mover cursor livremente",
+            "- Mão fechada: clique esquerdo",
+            "- Fechar/abrir rápido: duplo clique",
+            "- Mindinho levantado: clique direito",
+            "- Indicador e polegar: arrastar (drag)",
+            "- Abrir mão: soltar (drop)",
+            "- Gesto de paz (✌): copiar",
+            "- Gesto de OK (👌): colar",
+            "- Três dedos: Alt+Tab"
+        ]),
+        ("\nCONFIGURAÇÕES", [
+            "\nWebcam:",
+            "- Selecione sua webcam na lista",
+            "- Ou insira o link de uma câmera IP",
+            "- Clique em 'Confirmar' após selecionar",
+            "\nDelay:",
+            "- Ajuste a suavidade do movimento",
+            "- 0: movimento instantâneo",
+            "- 1: suavização leve (recomendado)",
+            "- 2-4: suavização progressiva",
+            "\nRotação:",
+            "- Use o botão 'Rodar Camera' para ajustar",
+            "- Rotação em 90° (vertical/horizontal)",
+            "- Útil para webcams em diferentes posições",
+            "\nDicas de Uso:",
+            "- Use boa iluminação para melhor detecção",
+            "- Mantenha o rosto bem visível na câmera",
+            "- Evite movimentos muito bruscos",
+            "- Ajuste o delay conforme sua preferência"
+        ]),
+        ("\nINTERFACE", [
+            "\nBotões:",
+            "- Confirmar: valida a webcam selecionada",
+            "- Iniciar: ativa o modo de detecção",
+            "- Parar: encerra o modo atual",
+            "- Rodar Camera: ajusta orientação",
+            "- Instruções: abre este guia",
+            "\nIndicadores:",
+            "- Status do Microfone: mostra se está ativo",
+            "- Último Comando: exibe comando de voz",
+            "\nTema:",
+            "- Ícone superior esquerdo alterna tema",
+            "- Claro: melhor para ambientes iluminados",
+            "- Escuro: reduz fadiga visual noturna",
+            "\nDicas:",
+            "- Teste diferentes modos para sua preferência",
+            "- Use o modo voz em conjunto com outros",
+            "- Alterne temas conforme a iluminação"
+        ])
+    ]
+
+    for title, items in sections:
+        # Título da seção
+        tk.Label(
+            scrollable_frame,
+            text=title,
+            font=("Arial", 12, "bold"),
+            fg=fg_color,
+            bg="black" if current_theme == "dark" else "white"
+        ).pack(anchor="w", padx=10, pady=(10, 5))
+        
+        # Itens da seção
+        for item in items:
+            tk.Label(
+                scrollable_frame,
+                text=item,
+                justify=tk.LEFT,
+                fg=fg_color,
+                bg="black" if current_theme == "dark" else "white"
+            ).pack(anchor="w", padx=20)
+
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5, pady=5)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    # Botão Fechar
+    close_button = Button(
+        instructions_window,
+        text="Fechar",
+        command=instructions_window.destroy,
+        style="danger.TButton"
+    )
+    close_button.pack(pady=10)
+
 def rotate_image():
     global rotation_value
     if rotation_value == 0:
@@ -280,6 +443,7 @@ def rotate_image():
         rotation_value = 0
     else:
         rotation_value = 0  # Valor padrão caso um valor inválido seja passado
+
 
 # Interface gráfica
 root = tk.Tk()
@@ -316,7 +480,7 @@ else:
 link_entry = Entry(root, style="info")
 
 # Modos de detecção
-detection_modes = ["Nariz", "Olhos", "Rosto", "Voz"]
+detection_modes = ["Nariz", "Olhos", "Rosto", "Voz", "Mão"]
 selected_detection_mode = tk.StringVar(root)
 selected_detection_mode.set(detection_modes[2])  # Seleciona o primeiro modo por padrão
 

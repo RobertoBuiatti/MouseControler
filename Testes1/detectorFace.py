@@ -59,7 +59,7 @@ def run_detection(camera_source, delay_value, rotation_value):
 
     frame_count = 0
 
-    while running:
+    while cam.isOpened() and running:
         ret, frame = cam.read()
         if not ret:
             continue
@@ -165,3 +165,4 @@ def stop_detection():
     running = False
     while threading.active_count() > 1:
         time.sleep(0.1)
+    cv2.destroyAllWindows()

@@ -1,10 +1,15 @@
 """
 Configurações para a API do Gemini
 """
+from dotenv import load_dotenv
+import os
+
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
 class GeminiConfig:
     URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-    API_KEY = "AIzaSyA8_mnMJCeRNBtddv8Js4L94HNsZ4_7NxM"
+    API_KEY = os.getenv('GEMINI_API_KEY')
     HEADERS = {
         "Content-Type": "application/json",
         "x-goog-api-key": API_KEY

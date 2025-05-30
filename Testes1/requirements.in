@@ -37,9 +37,11 @@ pyperclip
 PyRect
 PyScreeze
 python-dateutil
+python-dotenv
 python-utils
 pytweening
 pywin32-ctypes
+requests
 scipy
 setuptools
 six

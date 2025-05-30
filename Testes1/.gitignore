@@ -1,0 +1,22 @@
+# Arquivos de ambiente
+.env
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos de build
+build/
+dist/
+*.spec
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
